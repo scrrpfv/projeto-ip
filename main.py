@@ -1,6 +1,9 @@
-import numpy as np
+import basedosdados as bd
 import pandas as pd
-import matplotlib.pyplot as plt
 
-df = pd.read_csv('databases/dados.csv')
-print(df.values)
+# Para carregar o dado direto no pandas
+df = bd.read_table(dataset_id='br_seeg_emissoes',
+table_id='brasil',
+billing_project_id="hazel-logic-415517")
+
+df.to_csv('emissoes_co2')
