@@ -47,7 +47,7 @@ class multidata():
         # Plotando
         for i in df.columns:
             if i in pick:
-                plt.plot(df['ANO'], df[i], label=i) # Tá quebrado
+                plt.plot(df['ANO'], df[i], label=i)
         if isinstance(index, int):
             plt.title(f'{self.names[index].replace("_", " ")}')
         else:
