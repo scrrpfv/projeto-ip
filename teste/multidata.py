@@ -23,34 +23,30 @@ class multidata():
         return f'{" | ".join(self.names)}'
     
 
-    def plotall(self, index, tamanho=(8,8), amount=0):
+    def plotall(self, index, tamanho=(8,8), n=0):
         # Decorações
         fig, ax = plt.subplots()
         fig.patch.set_facecolor('#949997')
         plt.rcParams["figure.figsize"] = tamanho
         plt.minorticks_on()
         df = self[index]
-        ax.set_prop_cycle('color', plt.cm.nipy_spectral(np.linspace(0, 1, amount)))
+        if not n:
+            n = len(df.columns.values)
+        ax.set_prop_cycle('color', plt.cm.nipy_spectral(np.linspace(0, 1, n)))
 
         # Selecionando as colunas a plotar
-        if not amount:
-            amount = len(df.columns.values)
         pick = df.copy(deep=True)
         pick.pop('ANO')
-        medians = pick.median()
-        median = medians.median()
-        offsets = medians.apply(lambda x: abs(x - median))
+        top = pick.max()
+        bot = pick.min()
+        offsets = top - bot
+        offsets.apply(lambda x: abs(x))
         offsets.sort_values(ascending=True, inplace=True)
-        pick = offsets.index.values[:amount]
+        pick = offsets.index.values[:n]
 
         # Plotando
         for i in df.columns:
             if i in pick:
-                print(i)
-                print(df[i])
-                print(df['ANO'])
-                x = df[i]
-                y = df['ANO']
                 plt.plot(df['ANO'], df[i], label=i) # Tá quebrado
         if isinstance(index, int):
             plt.title(f'{self.names[index].replace("_", " ")}')
