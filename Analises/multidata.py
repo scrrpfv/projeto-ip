@@ -71,7 +71,7 @@ class MultiData():
         return df_copy
 
 class DataTable(pd.DataFrame):
-    def __init__(self, **kwargs):
+    def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.set_index('ANO', drop=True, inplace=True)
