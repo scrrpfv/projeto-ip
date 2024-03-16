@@ -32,7 +32,8 @@ class MultiData():
         if not n:
             n = len(df.columns.values)
         # Decorações
-        self.decorate(index, tamanho, n, df=df)
+        self.decorate(n=n, tamanho=tamanho)
+        decorado = True
         
 
         # Selecionando as colunas a plotar
@@ -45,10 +46,12 @@ class MultiData():
         pick = offsets.index.values[:n]
         
         # Plotando
-        self.plot_selection(df, pick)
+        self.plot_selection(df, pick, decorado)
 
 
-    def plot_selection(self, df, pick):
+    def plot_selection(self, df, pick, decorado=False):
+        if not decorado:
+            self.decorate(n=len(pick))
         for i in df.columns:
             if i in pick:
                 plt.plot(df.index.values, df[i], label=i)
@@ -58,7 +61,7 @@ class MultiData():
         plt.show()
     
     
-    def decorate(self, index, tamanho, n, df):
+    def decorate(self, n, tamanho=(8,8)):
         self.fig, self.ax = plt.subplots()
         self.fig.patch.set_facecolor('#949997')
         plt.minorticks_on()
@@ -74,5 +77,9 @@ class DataTable(pd.DataFrame):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
-        self.set_index('ANO', drop=True, inplace=True)
+        if self.index.name != 'ANO' and ('ANO' in self.columns):
+            self.set_index('ANO', drop=True, inplace=True)
+        else:
+            self.index = [ano for ano in range(1970, 2023)]
+            self.index.name='ANO'
 
