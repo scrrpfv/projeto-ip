@@ -3,13 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import nbformat
+import copy
 
 
 class MultiData():
     def __init__(self, datadict):
-        self.datas = datadict
+        self.datas = copy.deepcopy(datadict)
         self.names = [df for df in datadict]
-        self.change_to_DataTable()
+        for name in self.names:
+            self.datas[name] = self.change_to_DataTable(self.datas[name], name)
         
 
     # Acessar os dataframes por índice
@@ -64,14 +66,13 @@ class MultiData():
         self.ax.set_prop_cycle('color', plt.cm.nipy_spectral(np.linspace(0, 1, n)))
         
         
-    def change_to_DataTable(self):
-        for name in self.names:
-            self.datas[name] = DataTable(name, data=self.datas[name])
-
+    def change_to_DataTable(self, df, name):
+        df_copy = DataTable(columns = df.columns, data = copy.deepcopy(df.values), name=name)
+        return df_copy
 
 class DataTable(pd.DataFrame):
-    def __init__(self, name, data):
-        super().__init__(data)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.name = name
         self.set_index('ANO', drop=True, inplace=True)
 
