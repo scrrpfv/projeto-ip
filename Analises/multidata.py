@@ -10,10 +10,6 @@ class MultiData():
         self.datas = datadict
         self.names = [df for df in datadict]
         self.change_to_DataTable()
-        self.fig, self.ax = plt.subplots()
-        self.fig.patch.set_facecolor('#949997')
-        plt.minorticks_on()
-        
         
 
     # Acessar os dataframes por índice
@@ -31,12 +27,14 @@ class MultiData():
 
     def autoplot(self, index, tamanho=(8,8), n=0):
         df = self[index]
+        if not n:
+            n = len(df.columns.values)
         # Decorações
         self.decorate(index, tamanho, n, df=df)
-            
+        
+
         # Selecionando as colunas a plotar
         pick = df.copy(deep=True)
-        pick.pop('ANO')
         top = pick.max()
         bot = pick.min()
         offsets = top - bot
@@ -48,10 +46,10 @@ class MultiData():
         self.plot_selection(df, pick)
 
 
-    def plot_selection(df, pick):
+    def plot_selection(self, df, pick):
         for i in df.columns:
             if i in pick:
-                plt.plot(df['ANO'], df[i], label=i)
+                plt.plot(df.index.values, df[i], label=i)
         plt.title(f'{df.name.replace("_", " ")}')
         plt.legend(bbox_to_anchor=(1.1,0.9))
         plt.grid(which='both', alpha=0.5)
@@ -59,19 +57,21 @@ class MultiData():
     
     
     def decorate(self, index, tamanho, n, df):
+        self.fig, self.ax = plt.subplots()
+        self.fig.patch.set_facecolor('#949997')
+        plt.minorticks_on()
         plt.rcParams["figure.figsize"] = tamanho
-        if not n:
-            n = len(df.columns.values)
         self.ax.set_prop_cycle('color', plt.cm.nipy_spectral(np.linspace(0, 1, n)))
-
+        
         
     def change_to_DataTable(self):
         for name in self.names:
-            self.datas[name] = DataTable('name',data=self.datas[name])
+            self.datas[name] = DataTable(name, data=self.datas[name])
 
 
 class DataTable(pd.DataFrame):
     def __init__(self, name, data):
         super().__init__(data)
         self.name = name
+        self.set_index('ANO', drop=True, inplace=True)
 
