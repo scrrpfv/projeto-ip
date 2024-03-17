@@ -83,6 +83,4 @@ class DataTable(pd.DataFrame):
         else:
             self.index = pd.to_datetime(pd.Series([ano for ano in range(1970, 2023)]))
             self.index.name='ANO'
-        self['ANO'] = pd.to_datetime(self['ANO'], format='%Y')
-        self.set_index('ANO', drop=True, inplace=True)
 
