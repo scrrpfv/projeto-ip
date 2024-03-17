@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import nbformat
 import copy
+import statsmodels.api as sm
 
 
 class MultiData():
@@ -25,7 +26,7 @@ class MultiData():
     # Formatação para printar os nomes dos dataframes
     def __str__(self):
         return f'{" | ".join(self.names)}'
-            
+    
 
     def autoplot(self, index, tamanho=(8,8), n=0):
         df = self[index]
@@ -49,9 +50,13 @@ class MultiData():
         self.plot_selection(df, pick, decorado)
 
 
-    def plot_selection(self, df, pick, decorado=False):
+    def plot_selection(self, df, pick=[], decorado=False):
         if not decorado:
             self.decorate(n=len(pick))
+        
+        if len(pick) == 0:
+            pick = df.columns.values
+        
         for i in df.columns:
             if i in pick:
                 plt.plot(df.index.values, df[i], label=i)
@@ -72,7 +77,29 @@ class MultiData():
     def change_to_DataTable(self, df, name):
         df_copy = DataTable(columns = df.columns, data = copy.deepcopy(df.values), name=name)
         return df_copy
-
+    
+    
+    def projection_var(self, training_years, columns): # Forecasting exclusivam
+          # Criando um dataframe com as colunas que o usuário escolheu
+        df = pd.DataFrame()
+        for column in columns:
+              self[column[0]][column[1]]
+              pd.concat([df, column], axis=1)
+        training_data = df[:training_years] ## splicing do dataframe
+        
+        if training_years == len(df):
+              pass # Para o futuro
+        
+        # Código de projeção
+        model = sm.tsa.VAR(np.asarray(training_data, dtype='float'))
+        model_fit = model.fit()
+        prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=(len(df)-training_years))) ## gerado o dataframe com a projeção dos próximos anos
+        prediction.index = [training_data.index[-1] + pd.offsets.DateOffset(years=i) for i in range(len(prediction))]
+        prediction.rename(columns={i:name for i, name in enumerate(columns)}, inplace=True)
+        forecast = pd.concat([training_data, prediction])
+        self.plot_selection(df=forecast)
+    
+    
 class DataTable(pd.DataFrame):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
