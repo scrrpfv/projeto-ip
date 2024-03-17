@@ -77,9 +77,10 @@ class DataTable(pd.DataFrame):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
+        self['ANO'] = pd.to_datetime(self['ANO'], format='%Y')
         if self.index.name != 'ANO' and ('ANO' in self.columns):
             self.set_index('ANO', drop=True, inplace=True)
         else:
-            self.index = [ano for ano in range(1970, 2023)]
+            self.index = pd.to_datetime(pd.Series([ano for ano in range(1970, 2023)]))
             self.index.name='ANO'
 
