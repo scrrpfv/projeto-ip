@@ -25,7 +25,7 @@ class MultiData():
     # Formatação para printar os nomes dos dataframes
     def __str__(self):
         return f'{" | ".join(self.names)}'
-        
+            
 
     def autoplot(self, index, tamanho=(8,8), n=0):
         df = self[index]
