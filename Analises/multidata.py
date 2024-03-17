@@ -73,6 +73,17 @@ class MultiData():
         df_copy = DataTable(columns = df.columns, data = copy.deepcopy(df.values), name=name)
         return df_copy
 
+
+    def add_dataframe(self, df, name):
+        i = 0 
+        while name in self.names:
+            i += 1
+            name = f'{name}_{i}'
+        dt =  DataTable(columns = df.columns, data = copy.deepcopy(df.values), name=name)
+        self.datas[name] = dt
+        self.names.append(name)
+
+
 class DataTable(pd.DataFrame):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
