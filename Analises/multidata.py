@@ -81,6 +81,7 @@ class MultiData():
             name = f'{name}_{i}'
         dt =  DataTable(columns = df.columns, data = copy.deepcopy(df.values), name=name)
         self.datas[name] = dt
+        self.names.append(name)
 
 
 class DataTable(pd.DataFrame):
