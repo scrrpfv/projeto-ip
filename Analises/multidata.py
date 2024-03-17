@@ -73,5 +73,6 @@ class DataTable(pd.DataFrame):
     def __init__(self, name, data):
         super().__init__(data)
         self.name = name
+        self['ANO'] = pd.to_datetime(self['ANO'], format='%Y')
         self.set_index('ANO', drop=True, inplace=True)
 
