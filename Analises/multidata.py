@@ -51,11 +51,12 @@ class MultiData():
 
 
     def plot_selection(self, df, pick=[], decorado=False):
+        if len(pick) == 0:
+            pick = df.columns.values
+        
         if not decorado:
             self.decorate(n=len(pick))
         
-        if len(pick) == 0:
-            pick = df.columns.values
         
         for i in df.columns:
             if i in pick:
@@ -79,37 +80,39 @@ class MultiData():
         return df_copy
     
     
-    def projection_var(self, training_years, columns): # Forecasting exclusivam
-          # Criando um dataframe com as colunas que o usuário escolheu
+    def projection_var(self, training_years: int, columns: list, title='esqueceu o titulo kkkkkk', plot=True): # Forecasting exclusivam
+        # Criando um dataframe com as colunas que o usuário escolheu
         df = pd.DataFrame()
         for column in columns:
-              self[column[0]][column[1]]
-              pd.concat([df, column], axis=1)
+            df = pd.concat([df, self[column[0]][column[1]]], axis=1)
         training_data = df[:training_years] ## splicing do dataframe
-        
+
         if training_years == len(df):
-              pass # Para o futuro
+            pass # Para o futuro
         
         # Código de projeção
         model = sm.tsa.VAR(np.asarray(training_data, dtype='float'))
         model_fit = model.fit()
         prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=(len(df)-training_years))) ## gerado o dataframe com a projeção dos próximos anos
-        prediction.index = [training_data.index[-1] + pd.offsets.DateOffset(years=i) for i in range(len(prediction))]
-        prediction.rename(columns={i: name for i, name in enumerate(columns)}, inplace=True)
+        prediction.index = [training_data.index[-1] + pd.offsets.DateOffset(years=(i+1)) for i in range(len(prediction))]
+        prediction.rename(columns={i: name for i, name in enumerate(df.columns.values)}, inplace=True)
         forecast = pd.concat([training_data, prediction])
-        forecast.rename(column={name: (name + ' projetado') for name in forecast.columns.values})
-        pd.concat([forecast, df], axis=1)
-        self.plot_selection(df=forecast)
+        forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
+        result = pd.concat([forecast, df], axis=1)
+        result = self.change_to_DataTable(result, title)
+        if plot:
+            self.plot_selection(df=result)
+        return result
     
     
 class DataTable(pd.DataFrame):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
-        self['ANO'] = pd.to_datetime(self['ANO'], format='%Y')
         if self.index.name != 'ANO' and ('ANO' in self.columns):
+            self['ANO'] = pd.to_datetime(self['ANO'], format='%Y')
             self.set_index('ANO', drop=True, inplace=True)
         else:
-            self.index = pd.to_datetime(pd.Series([ano for ano in range(1970, 2023)]))
+            self.index = pd.to_datetime(pd.Series([ano for ano in range(1970, 2023)]), format='%Y')
             self.index.name='ANO'
 
