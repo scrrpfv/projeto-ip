@@ -98,6 +98,7 @@ class MultiData():
         prediction.rename(columns={i: name for i, name in enumerate(columns)}, inplace=True)
         forecast = pd.concat([training_data, prediction])
         forecast.rename(column={name: (name + ' projetado') for name in forecast.columns.values})
+        pd.concat([forecast, df], axis=1)
         self.plot_selection(df=forecast)
     
     
