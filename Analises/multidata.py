@@ -95,8 +95,9 @@ class MultiData():
         model_fit = model.fit()
         prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=(len(df)-training_years))) ## gerado o dataframe com a projeção dos próximos anos
         prediction.index = [training_data.index[-1] + pd.offsets.DateOffset(years=i) for i in range(len(prediction))]
-        prediction.rename(columns={i:name for i, name in enumerate(columns)}, inplace=True)
+        prediction.rename(columns={i: name for i, name in enumerate(columns)}, inplace=True)
         forecast = pd.concat([training_data, prediction])
+        forecast.rename(column={name: (name + ' projetado') for name in forecast.columns.values})
         self.plot_selection(df=forecast)
     
     
