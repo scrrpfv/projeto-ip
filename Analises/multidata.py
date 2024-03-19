@@ -92,7 +92,7 @@ class MultiData():
         
         # Código de projeção
         model = sm.tsa.VAR(np.asarray(training_data, dtype='float'))
-        model_fit = model.fit()
+        model_fit = model.fit_regularized(alpha=0.1, method='ridge')
         prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=(len(df)-training_years))) ## gerado o dataframe com a projeção dos próximos anos
         prediction.index = [training_data.index[-1] + pd.offsets.DateOffset(years=(i+1)) for i in range(len(prediction))]
         prediction.rename(columns={i: name for i, name in enumerate(df.columns.values)}, inplace=True)
