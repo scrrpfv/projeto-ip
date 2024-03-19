@@ -98,7 +98,6 @@ class MultiData():
         forecast = pd.concat([training_data, prediction])
         forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
         result = pd.concat([forecast, df], axis=1)
-        print(result)
         result = self.change_to_DataTable(result, title, last_year=max(last_year_projected, 2023))
         if plot:
             self.plot_selection(df=result)
