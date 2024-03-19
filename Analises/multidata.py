@@ -95,8 +95,8 @@ class MultiData():
         forecast = pd.concat([training_data, prediction])
         forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
         
-        for i, column in enumerate(forecast.columns.values):
-            df.insert((2*i+1), column, forecast[column]) ## Faz com que fique intercalado [dado1, projecao1, dado2, projecao2, ...] 
+        # for i, column in enumerate(forecast.columns.values):
+        #     df.insert((2*i+1), column, forecast[column]) ## Faz com que fique intercalado [dado1, projecao1, dado2, projecao2, ...] 
 
         result = pd.concat([forecast, df], axis=1)
         result = self.change_to_DataTable(result, title, last_year=max(last_year_projected, 2023))
