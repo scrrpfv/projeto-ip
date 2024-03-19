@@ -1,7 +1,5 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import nbformat
 import copy
 import statsmodels.api as sm
@@ -36,7 +34,6 @@ class MultiData():
         self.decorate(n=n, tamanho=tamanho)
         decorado = True
         
-
         # Selecionando as colunas a plotar
         pick = df.copy(deep=True)
         top = pick.max()
@@ -56,7 +53,6 @@ class MultiData():
         
         if not decorado:
             self.decorate(n=len(pick))
-        
         
         for i in df.columns:
             if i in pick:
@@ -123,6 +119,13 @@ class MultiData():
             forecasts = pd.concat([forecasts, prediction])
         forecasts.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
         
+        labels = forecast.columns.values
+        for i in range(len(columns)):
+            df.insert((i*2)+1, labels[i], forecast[labels[i]])
+        df = self.change_to_DataTable(df, title, last_year=2023)
+
+        labels = forecast.columns.values
+        self.plot_selection(df=df)
     
 
     def add_dataframe(self, df, name):
