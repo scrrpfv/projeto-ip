@@ -110,6 +110,7 @@ class MultiData():
         for column in columns:
             df = pd.concat([df, self[column[0]][column[1]]], axis=1)
         n_projections = int(period/columns)
+        forecasts = pd.DataFrame()
         for p in len(1, n_projections + 1):
             training_size = p*period
             training_data = df[:training_size + 1]
@@ -119,8 +120,10 @@ class MultiData():
             prediction.rename(columns={i: name for i, name in enumerate(df.columns.values)}, inplace=True)
             forecast = pd.concat([training_data, prediction])
             forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
+            forecasts = pd.concat([forecasts, prediction])
+        forecasts.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
         
-
+    
 
     def add_dataframe(self, df, name):
         i = 0 
