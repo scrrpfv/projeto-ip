@@ -84,9 +84,6 @@ class MultiData():
         for column in columns:
             df = pd.concat([df, self[column[0]][column[1]]], axis=1)
 
-        # if pd.to_datetime(last_year_projected, format='%Y') > self[0].last_valid_index():
-        #     df.loc[len(df)] = pd.Series(dtype='float64')
-        # df = self.change_to_DataTable(df=df, name=title)
         training_data = df[:training_years +1] ## splicing do dataframe
         
         # Código de projeção
@@ -97,6 +94,10 @@ class MultiData():
         prediction.rename(columns={i: name for i, name in enumerate(df.columns.values)}, inplace=True)
         forecast = pd.concat([training_data, prediction])
         forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
+        
+        for i, column in enumerate(forecast.columns.values):
+            df.insert((2*i+1), column, forecast[column]) ## Faz com que fique intercalado [dado1, projecao1, dado2, projecao2, ...] 
+
         result = pd.concat([forecast, df], axis=1)
         result = self.change_to_DataTable(result, title, last_year=max(last_year_projected, 2023))
         if plot:
