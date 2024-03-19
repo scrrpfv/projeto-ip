@@ -3,13 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import nbformat
+import copy
+import statsmodels.api as sm
 
 
 class MultiData():
     def __init__(self, datadict):
-        self.datas = datadict
+        self.datas = copy.deepcopy(datadict)
         self.names = [df for df in datadict]
-        self.change_to_DataTable()
+        for name in self.names:
+            self.datas[name] = self.change_to_DataTable(self.datas[name], name)
         
 
     # Acessar os dataframes por índice
@@ -23,14 +26,15 @@ class MultiData():
     # Formatação para printar os nomes dos dataframes
     def __str__(self):
         return f'{" | ".join(self.names)}'
-        
+    
 
     def autoplot(self, index, tamanho=(8,8), n=0):
         df = self[index]
         if not n:
             n = len(df.columns.values)
         # Decorações
-        self.decorate(index, tamanho, n, df=df)
+        self.decorate(n=n, tamanho=tamanho)
+        decorado = True
         
 
         # Selecionando as colunas a plotar
@@ -43,10 +47,17 @@ class MultiData():
         pick = offsets.index.values[:n]
         
         # Plotando
-        self.plot_selection(df, pick)
+        self.plot_selection(df, pick, decorado)
 
 
-    def plot_selection(self, df, pick):
+    def plot_selection(self, df, pick=[], decorado=False):
+        if len(pick) == 0:
+            pick = df.columns.values
+        
+        if not decorado:
+            self.decorate(n=len(pick))
+        
+        
         for i in df.columns:
             if i in pick:
                 plt.plot(df.index.values, df[i], label=i)
@@ -56,7 +67,7 @@ class MultiData():
         plt.show()
     
     
-    def decorate(self, index, tamanho, n, df):
+    def decorate(self, n, tamanho=(8,8)):
         self.fig, self.ax = plt.subplots()
         self.fig.patch.set_facecolor('#949997')
         plt.minorticks_on()
@@ -64,14 +75,65 @@ class MultiData():
         self.ax.set_prop_cycle('color', plt.cm.nipy_spectral(np.linspace(0, 1, n)))
         
         
-    def change_to_DataTable(self):
-        for name in self.names:
-            self.datas[name] = DataTable(name, data=self.datas[name])
+    def projection_var(self, last_year_projected: int, columns: list, title='esqueceu o titulo kkkkkk', plot=True): # Forecasting exclusivam
+        # Criando um dataframe com as colunas que o usuário escolheu
+        chosen_n_analysis = round(((pd.to_datetime(last_year_projected, format='%Y')-self[0].first_valid_index()).days/365))
+        max_n_analysis = round(((self[0].last_valid_index()-self[0].first_valid_index())).days/365)
+        training_years = min(chosen_n_analysis, max_n_analysis)
+        df = pd.DataFrame()
+        for column in columns:
+            df = pd.concat([df, self[column[0]][column[1]]], axis=1)
 
+        training_data = df[:training_years +1] ## splicing do dataframe
+        
+        # Código de projeção
+        model = sm.tsa.VAR(np.asarray(training_data, dtype='float'))
+        model_fit = model.fit()
+        prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=(max(chosen_n_analysis, max_n_analysis) - (training_years + 1)))) ## gerado o dataframe com a projeção dos próximos anos
+        prediction.index = [training_data.index[-1] + pd.offsets.DateOffset(years=(i+1)) for i in range(len(prediction))]
+        prediction.rename(columns={i: name for i, name in enumerate(df.columns.values)}, inplace=True)
+        forecast = pd.concat([training_data, prediction])
+        forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
+        
+        result = pd.concat([forecast, df], axis=1)
+        
+        ## Troca intercalação das colunas para [coluna1, coluna1_proj, coluna2, coluna2_proj, ...]
+        cols = result.columns.to_list()
+        for i in range(int(len(cols)/2)):
+            for j in range(int(len(cols)/2)):
+                cols[j], cols[j + 1] = cols[j + 1], cols[j]
+        result = result[cols]
 
+        result = self.change_to_DataTable(result, title, last_year=max(last_year_projected, 2023))
+
+        if plot:
+            self.plot_selection(df=result)
+        return result
+    
+
+    def add_dataframe(self, df, name):
+        i = 0 
+        while name in self.names:
+            i += 1
+            name = f'{name}_{i}'
+        dt = self.change_to_DataTable(df, name=name)
+        self.datas[name] = dt
+        self.names.append(name)
+
+    def change_to_DataTable(self, df, name, last_year=2023):
+        df_copy = DataTable(columns = df.columns, data = copy.deepcopy(df.values), name=name, last_year=last_year)
+        return df_copy
+    
+
+    
 class DataTable(pd.DataFrame):
-    def __init__(self, name, data):
-        super().__init__(data)
+    def __init__(self, name, last_year=2023, **kwargs):
+        super().__init__(**kwargs)
         self.name = name
-        self.set_index('ANO', drop=True, inplace=True)
+        if self.index.name != 'ANO' and ('ANO' in self.columns):
+            self['ANO'] = pd.to_datetime(self['ANO'], format='%Y')
+            self.set_index('ANO', drop=True, inplace=True)
+        else:
+            self.index = pd.to_datetime(pd.Series([ano for ano in range(1970, last_year)]), format='%Y')
+            self.index.name='ANO'
 
