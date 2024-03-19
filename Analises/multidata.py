@@ -84,7 +84,7 @@ class MultiData():
         for column in columns:
             df = pd.concat([df, self[column[0]][column[1]]], axis=1)
 
-        training_data = df[:training_years +1] ## splicing do dataframe
+        training_data = df[:training_years + 1] ## splicing do dataframe
         
         # Código de projeção
         model = sm.tsa.VAR(np.asarray(training_data, dtype='float'))
@@ -103,7 +103,24 @@ class MultiData():
         if plot:
             self.plot_selection(df=df)
         return df
-    
+
+
+    def periodic_proj(self, columns, title='esqueceu o titulo', period=5):
+        df = pd.DataFrame()
+        for column in columns:
+            df = pd.concat([df, self[column[0]][column[1]]], axis=1)
+        n_projections = int(period/columns)
+        for p in len(1, n_projections + 1):
+            training_size = p*period
+            training_data = df[:training_size + 1]
+            model = sm.tsa.VAR(np.asarray(training_data, dtype='float'))
+            model_fit = model.fit()
+            prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=period))
+            prediction.rename(columns={i: name for i, name in enumerate(df.columns.values)}, inplace=True)
+            forecast = pd.concat([training_data, prediction])
+            forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
+        
+
 
     def add_dataframe(self, df, name):
         i = 0 
