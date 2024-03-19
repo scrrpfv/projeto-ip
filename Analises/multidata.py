@@ -97,14 +97,25 @@ class MultiData():
         
         result = pd.concat([forecast, df], axis=1)
         
-        ## Troca intercalação das colunas para [coluna1, coluna1_proj, coluna2, coluna2_proj, ...]
-        cols = result.columns.to_list()
-        for i in range(int(len(cols)/2)):
-            for j in range(int(len(cols)/2)):
-                cols[j], cols[j + 1] = cols[j + 1], cols[j]
-        result = result[cols]
+        # Troca intercalação das colunas para [coluna1, coluna1_proj, coluna2, coluna2_proj, ...]
+        cols = result.columns.values
+        number_of_forecasts = int(len(cols)/2)
+        forecast_cols = cols[:number_of_forecasts]
+        data_cols = cols[number_of_forecasts:]
 
-        result = self.change_to_DataTable(result, title, last_year=max(last_year_projected, 2023))
+        result_cols = []
+        for i in range(number_of_forecasts):
+            result_cols.append(forecast_cols[i])
+            result_cols.append(data_cols[i])
+
+
+        
+        # for i in range(int(len(cols)/2)):
+        #     for j in range(int(len(cols)/2)):
+        #         cols[j], cols[j + 1] = cols[j + 1], cols[j]
+        # result = result[cols]
+
+        result = self.change_to_DataTable(result[result_cols], title, last_year=max(last_year_projected, 2023))
 
         if plot:
             self.plot_selection(df=result)
