@@ -12,8 +12,8 @@ class MultiData():
         self.datas = copy.deepcopy(datadict)
         self.names = [df for df in datadict]
         for name in self.names:
-            self.datas[name] = self.change_to_DataTable(self.datas[name], name)
-        
+            self.datas[name] = DataTable(df=self.datas[name], name=name)
+        self.Projection = Projection(self)
 
     # Acessar os dataframes por índice
     def __getitem__(self, key):
@@ -75,10 +75,66 @@ class MultiData():
         self.ax.set_prop_cycle('color', plt.cm.nipy_spectral(np.linspace(0, 1, n)))
         
         
-    def projection_var(self, last_year_projected: int, columns: list, title='esqueceu o titulo kkkkkk', plot=True): # Forecasting exclusivam
-        # Criando um dataframe com as colunas que o usuário escolheu
-        chosen_n_analysis = round(((pd.to_datetime(last_year_projected, format='%Y')-self[0].first_valid_index()).days/365))
-        max_n_analysis = round(((self[0].last_valid_index()-self[0].first_valid_index())).days/365)
+    # def projection_var(self, last_year_projected: int, columns: list, title='esqueceu o titulo kkkkkk', plot=True): # Forecasting exclusivam
+    #     # Criando um dataframe com as colunas que o usuário escolheu
+    #     chosen_n_analysis = round(((pd.to_datetime(last_year_projected, format='%Y')-self[0].first_valid_index()).days/365))
+    #     max_n_analysis = round(((self[0].last_valid_index()-self[0].first_valid_index())).days/365)
+    #     training_years = min(chosen_n_analysis, max_n_analysis)
+    #     df = pd.DataFrame()
+    #     for column in columns:
+    #         df = pd.concat([df, self[column[0]][column[1]]], axis=1)
+
+    #     training_data = df[:training_years +1] ## splicing do dataframe
+        
+    #     # Código de projeção
+    #     model = sm.tsa.VAR(np.asarray(training_data, dtype='float'))
+    #     model_fit = model.fit()
+    #     prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=(max(chosen_n_analysis, max_n_analysis) - (training_years + 1)))) ## gerado o dataframe com a projeção dos próximos anos
+    #     prediction.index = [training_data.index[-1] + pd.offsets.DateOffset(years=(i+1)) for i in range(len(prediction))]
+    #     prediction.rename(columns={i: name for i, name in enumerate(df.columns.values)}, inplace=True)
+    #     forecast = pd.concat([training_data, prediction])
+    #     forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
+        
+    #     result = pd.concat([forecast, df], axis=1)
+        
+    #     # Troca intercalação das colunas para [coluna1, coluna1_proj, coluna2, coluna2_proj, ...]
+    #     cols = result.columns.values
+    #     number_of_forecasts = int(len(cols)/2)
+    #     forecast_cols = cols[:number_of_forecasts]
+    #     data_cols = cols[number_of_forecasts:]
+
+    #     result_cols = []
+    #     for i in range(number_of_forecasts):
+    #         result_cols.append(forecast_cols[i])
+    #         result_cols.append(data_cols[i])
+
+    #     result = DataTable(result[result_cols], title, last_year=max(last_year_projected, 2023))
+
+    #     if plot:
+    #         self.plot_selection(df=result)
+    #     return result
+    
+
+    def add_dataframe(self, df, name):
+        i = 0 
+        while name in self.names:
+            i += 1
+            name = f'{name}_{i}'
+        dt = DataTable(df=df, name=name, last_year=2023)
+        self.datas[name] = dt
+        self.names.append(name)
+    
+
+    
+
+class Projection:
+    def __init__(self, multidata_object):
+        self.data = multidata_object
+    
+    def VAR(self, last_year_projected: int, columns: list, title='esqueceu o titulo kkkkkk', plot=True):
+         # Criando um dataframe com as colunas que o usuário escolheu
+        chosen_n_analysis = round(((pd.to_datetime(last_year_projected, format='%Y')-self.data[0].first_valid_index()).days/365))
+        max_n_analysis = round(((self.data[0].last_valid_index()-self.data[0].first_valid_index())).days/365)
         training_years = min(chosen_n_analysis, max_n_analysis)
         df = pd.DataFrame()
         for column in columns:
@@ -108,38 +164,15 @@ class MultiData():
             result_cols.append(forecast_cols[i])
             result_cols.append(data_cols[i])
 
+        result = DataTable(df=result[result_cols], name=title, last_year=max(last_year_projected, 2023))
 
-        
-        # for i in range(int(len(cols)/2)):
-        #     for j in range(int(len(cols)/2)):
-        #         cols[j], cols[j + 1] = cols[j + 1], cols[j]
-        # result = result[cols]
-
-        result = self.change_to_DataTable(result[result_cols], title, last_year=max(last_year_projected, 2023))
-
-        if plot:
-            self.plot_selection(df=result)
         return result
     
-
-    def add_dataframe(self, df, name):
-        i = 0 
-        while name in self.names:
-            i += 1
-            name = f'{name}_{i}'
-        dt = self.change_to_DataTable(df, name=name)
-        self.datas[name] = dt
-        self.names.append(name)
-
-    def change_to_DataTable(self, df, name, last_year=2023):
-        df_copy = DataTable(columns = df.columns, data = copy.deepcopy(df.values), name=name, last_year=last_year)
-        return df_copy
-    
-
-    
 class DataTable(pd.DataFrame):
-    def __init__(self, name, last_year=2023, **kwargs):
+    def __init__(self, df=pd.DataFrame(), name='Noname', last_year=2023, **kwargs):
         super().__init__(**kwargs)
+        self.columns = df.columns
+        self.data = copy.deepcopy(df.values)
         self.name = name
         if self.index.name != 'ANO' and ('ANO' in self.columns):
             self['ANO'] = pd.to_datetime(self['ANO'], format='%Y')
@@ -147,4 +180,8 @@ class DataTable(pd.DataFrame):
         else:
             self.index = pd.to_datetime(pd.Series([ano for ano in range(1970, last_year)]), format='%Y')
             self.index.name='ANO'
+
+df = pd.DataFrame()
+datatable = DataTable(df, name, last_year=)
+# datatable = DataTable(columns = df.columns, data = copy.deepcopy(df.values), name=name, last_year=last_year)
 
