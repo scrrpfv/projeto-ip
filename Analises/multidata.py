@@ -1,9 +1,6 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import nbformat
 import copy
-import statsmodels.api as sm
 from datatable import DataTable
 from projection import Projection
 from plotting import Plotting
@@ -25,20 +22,21 @@ class MultiData():
             return self.datas[self.names[key]]
         else:
             return self.datas[key]
-        
+    
+
     # Formatação para printar os nomes dos dataframes
     def __str__(self):
         return f'{" | ".join(self.names)}'
     
+
     # Função que adiciona um novo dataframe ao MultiData
     def add_dataframe(self, df, name):
         i = 0 
         while name in self.names:
             i += 1
             name = f'{name}_{i}'
-        dt = DataTable(data=df, name=name, last_year=2023)
+        dt = DataTable(data=df, name=name, last_year=int(df.last_valid_index().year+1))
         self.datas[name] = dt
         self.names.append(name) # Atualização do self.names com o novo nome de DataTable
         self.Projection = Projection(self) # Atualização do self.Projection
         self.Plotting = Plotting(self) # Atualização do self.Plotting
-        
