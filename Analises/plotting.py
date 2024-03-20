@@ -6,6 +6,7 @@ class Plotting:
     def __init__(self, df_dict) -> None:
         self.data = df_dict
     
+
     def autoplot(self, index, tamanho=(8,8), n=0):
         df = self.data[index]
         if not n:
@@ -26,6 +27,7 @@ class Plotting:
         # Plotando
         self.plot_selection(df, pick, decorado)
 
+
     def plot_selection(self, df, pick=[], decorado=False):
         if len(pick) == 0:
             pick = df.columns.values
@@ -41,10 +43,10 @@ class Plotting:
         plt.grid(which='both', alpha=0.5)
         plt.show()
 
+
     def decorate(self, n, tamanho=(8,8)):
         self.fig, self.ax = plt.subplots()
         self.fig.patch.set_facecolor('#949997')
         plt.minorticks_on()
         plt.rcParams["figure.figsize"] = tamanho
         self.ax.set_prop_cycle('color', plt.cm.nipy_spectral(np.linspace(0, 1, n)))
-        
