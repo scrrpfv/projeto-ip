@@ -28,19 +28,18 @@ class Projection:
         forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
         
         result = pd.concat([forecast, df], axis=1)
-        
-        # Troca intercalação das colunas para [coluna1, coluna1_proj, coluna2, coluna2_proj, ...]
-        cols = result.columns.values
+        result_cols = self.intercalate_cols(df=result) # Intercalando as colunas para legibilidade do gráfico/
+        result = DataTable(data=result[result_cols], name=title, last_year=max(last_year_projected, 2023))
+        return result
+    
+    def intercalate_cols(self, df):
+        cols = df.columns.values
         number_of_forecasts = int(len(cols)/2)
         forecast_cols = cols[:number_of_forecasts]
         data_cols = cols[number_of_forecasts:]
-
         result_cols = []
         for i in range(number_of_forecasts):
             result_cols.append(forecast_cols[i])
             result_cols.append(data_cols[i])
 
-        result = DataTable(data=result[result_cols], name=title, last_year=max(last_year_projected, 2023))
-
-        return result
-    
+        return result_cols
