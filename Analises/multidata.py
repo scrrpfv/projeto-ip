@@ -33,7 +33,7 @@ class MultiData():
         while name in self.names:
             i += 1
             name = f'{name}_{i}'
-        dt = DataTable(data=df, name=name, last_year=2023)
+        dt = DataTable(data=df, name=name, last_year=int(df.last_valid_index().year+1))
         self.datas[name] = dt
         self.names.append(name) # Atualização do self.names com o novo nome de DataTable
         self.Projection = Projection(self) # Atualização do self.Projection
