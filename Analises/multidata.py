@@ -89,21 +89,22 @@ class MultiData():
         # Código de projeção
         model = sm.tsa.VAR(np.asarray(training_data, dtype='float'))
         model_fit = model.fit()
-        prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=(max(chosen_n_analysis, max_n_analysis) - (training_years + 1)))) ## gerado o dataframe com a projeção dos próximos anos
+        prediction = pd.DataFrame(model_fit.forecast(model.endog, steps=(max(chosen_n_analysis, max_n_analysis) - training_years))) ## gerado o dataframe com a projeção dos próximos anos
         prediction.index = [training_data.index[-1] + pd.offsets.DateOffset(years=(i+1)) for i in range(len(prediction))]
         prediction.rename(columns={i: name for i, name in enumerate(df.columns.values)}, inplace=True)
         forecast = pd.concat([training_data, prediction])
         forecast.rename(columns={name: (name + ' projetado') for name in forecast.columns.values}, inplace=True)
         
-        # for i, column in enumerate(forecast.columns.values):
-        #     df.insert((2*i+1), column, forecast[column]) ## Faz com que fique intercalado [dado1, projecao1, dado2, projecao2, ...] 
+        labels = forecast.columns.values
+        for i in range(len(columns)):
+            df.insert((i*2)+1, labels[i], forecast[labels[i]])
+        df = self.change_to_DataTable(df, title, last_year=max(last_year_projected, 2023))
 
-        result = pd.concat([forecast, df], axis=1)
-        result = self.change_to_DataTable(result, title, last_year=max(last_year_projected, 2023))
         if plot:
-            self.plot_selection(df=result)
-        return result
+            self.plot_selection(df=df)
+        return df
     
+
     def add_dataframe(self, df, name):
         i = 0 
         while name in self.names:
