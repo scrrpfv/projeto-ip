@@ -22,11 +22,13 @@ class MultiData():
             return self.datas[self.names[key]]
         else:
             return self.datas[key]
-        
+    
+
     # Formatação para printar os nomes dos dataframes
     def __str__(self):
         return f'{" | ".join(self.names)}'
     
+
     # Função que adiciona um novo dataframe ao MultiData
     def add_dataframe(self, df, name):
         i = 0 
@@ -38,4 +40,3 @@ class MultiData():
         self.names.append(name) # Atualização do self.names com o novo nome de DataTable
         self.Projection = Projection(self) # Atualização do self.Projection
         self.Plotting = Plotting(self) # Atualização do self.Plotting
-        
