@@ -49,3 +49,21 @@ class Projection:
             result_cols.append(forecast_cols[i])
             result_cols.append(data_cols[i])
         return result_cols
+
+
+    def errordiff(self, result_a, result_b):
+        result_a = self.data[result_a]
+        result_b = self.data[result_b]
+        errors = []
+        columns_a, columns_b = result_a.columns.values, result_b.columns.values
+        size_a, size_b = len(columns_a), len(columns_b)
+        for i in range(1, size_a, 2):
+            if columns_a[i] in columns_b:
+                error_a = sm.tools.eval_measures.mse(result_a[columns_a[i]], result_a[columns_a[i] + ' projetado'], axis=0)
+                error_b = sm.tools.eval_measures.mse(result_b[columns_a[i]], result_b[columns_a[i] + ' projetado'], axis=0)
+                if error_a > error_b:
+                    diff = f'Modelo 2 é {error_a/error_b} vezes mais preciso'
+                else:
+                    diff = f'Modelo 1 é {error_b/error_a} vezes mais preciso'
+                errors.append(columns_a[i] + ': ' +  diff)
+        return errors
