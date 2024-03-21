@@ -11,7 +11,7 @@ class MultiData():
         self.datas = copy.deepcopy(datadict)
         self.names = [df for df in datadict]
         for name in self.names:
-            self.datas[name] = DataTable(data=self.datas[name], name=name)
+            self.datas[name] = DataTable(data=self.datas[name], name=name, last_year=pd.to_datetime(self.datas[name].last_valid_index()).year+1)
         self.Projection = Projection(self)
         self.Plotting = Plotting(self)
 
