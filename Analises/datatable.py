@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class DataTable(pd.DataFrame):
     def __init__(self, name='Noname', last_year=2023, **kwargs):
         super().__init__(**kwargs)
@@ -10,4 +11,3 @@ class DataTable(pd.DataFrame):
         else:
             self.index = pd.to_datetime(pd.Series([ano for ano in range(1970, last_year)]), format='%Y')
             self.index.name='ANO'
-            
